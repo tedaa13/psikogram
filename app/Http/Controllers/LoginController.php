@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Session;
+use DB;
 
 class LoginController extends Controller
 {
@@ -29,7 +30,14 @@ class LoginController extends Controller
     ];
 
     if (Auth::Attempt($data)) {
-        return redirect('home');
+        $getRole = DB::table('users')
+                    ->where('email','=',$data['email'])
+                    ->first();
+        if($getRole->role == 'GST'){
+          return redirect('profile');
+        }else{
+          return redirect('home');
+        }
     }else{
         Session::flash('error', 'Email atau Password Salah');
         return redirect('/');

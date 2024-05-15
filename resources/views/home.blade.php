@@ -1,15 +1,17 @@
-<!-- Menghubungkan dengan view template master -->
 @extends('layouts.master')
-
-<!-- isi bagian judul halaman -->
-<!-- cara penulisan isi section yang pendek -->
-@section('judul', 'Halaman Home')
-
-<!-- isi bagian konten -->
-<!-- cara penulisan isi section yang panjang -->
-@section('konten')
-
-  <p>Selamat datang!</p>
-  <p>Ini Adalah Halaman Home - Belajar Sistem Blade Template Laravel</p>
-
+@section('title', 'Dashboard')
+@section('content')
+<div class="container">
+  <h1>Dashboard</h1>
+  <div class="card">
+    <!-- <div class="card-header">
+      Dashboard
+    </div> -->
+    <div class="card-body">
+      <h5 class="card-title">Special title treatment</h5>
+      <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+      <a href="#" class="btn btn-primary">Go somewhere</a>
+    </div>
+  </div>
+</div>
 @endsection

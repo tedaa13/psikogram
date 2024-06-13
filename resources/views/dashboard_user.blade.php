@@ -21,8 +21,44 @@
     vertical-align: middle;
   }
 
-  .navbar-collapse.collapse {
-    display: block!important;
+  .active{
+    background: #0EF3F3  !important; 
+  }
+
+  .sudahDiisi{
+    background: #EEEEEE;
+  }
+
+  .klikAnswer{
+    cursor:pointer;
+  }
+
+  .klikAnswer:hover{
+    background: #0EF3F3;
+  }
+
+  .klikNomor{
+    cursor:pointer;
+    background-color:#F3F7EC;
+    border: 3px white solid;
+  }
+
+  .klikNomor:hover{
+    background: #0EF3F3;
+  }
+
+  .terisi{
+    background: #F1E5D1;
+  }
+
+  .divElement{
+    /* position: absolute; */
+    /* top: 50%; */
+    /* left: 50%; */
+    margin-top: 10%;
+    /* margin-left: -50px; */
+    /* width: 100px; */
+    /* height: 100px; */
   }
 </style>
 <!-- end section CSS -->
@@ -33,8 +69,374 @@
 <script type="text/javascript">
   $(document).ready(function () {
     showIt();
-    openProfile();
+    // openProfile();
   });
+
+  function openIt($idUser, $idCategory){
+    var elMenu = document.getElementById('hal_menu');
+    var elQuiz = document.getElementById('hal_quiz');
+
+    elMenu.style.display = 'none';  
+    elQuiz.style.display = 'block';
+
+    $flstart = true;
+    $noQuiz = 0;
+    $jmlSoal = 0;
+
+    $.ajax({
+      type    : 'POST',
+      async   : false,
+      dataType: 'JSON',
+      url   	: "{{ url('dashboard_user') }}/cekLastSave",
+      data    : {
+        "idUser" : $idUser,
+        "idCategory" : $idCategory
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        $flstart = false;
+        $noQuiz = result.MIN_TERJAWAB;
+        $jmlSoal = result.JMLH_SOAL;
+      }
+    });
+
+    if($flstart == true){
+      $.ajax({
+        type    : 'POST',
+        dataType: 'JSON',
+        url   	: "{{ url('dashboard_user') }}/getContentQuiz",
+        data    : {
+          "idUser" : $idUser,
+          "IdCategory" : $idCategory
+        },
+        headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        success : function(result){
+          document.getElementById('TotalSoalE').value = result["master_soal"].JMLH_E;
+          document.getElementById('TotalSoalL').value = result["master_soal"].JMLH_L;
+          $contentHTML = "";
+          $contentHTML =  '<div class="row justify-content-md-center">'+
+                            '<div class="col-md-10">'+
+                              '<div class="card">'+
+                                '<div class="card-body">'+
+                                  '<div class="row">'+
+                                    '<div id="contentQuiz" class="textCenter">'+
+                                      '<h1>PETUNJUK</h1>'+
+                                      '<hr/>'+
+                                      '<p style="white-space:pre-line" class="textLeft">'+result["master_category"].fl_instruction+'</p>'+
+                                      '<button type="button" class="btn btn-primary btn-sm" onclick="PageContohSoal('+$idCategory+',1,'+$idUser+');">CONTOH SOAL</button>'+
+                                    '</div>'+
+                                  '</div>'+
+                                '</div>'+
+                              '</div>'+
+                            '</div>'+
+                          '</div>';
+          $('#hal_quiz').html('');
+          $('#hal_quiz').append($contentHTML);
+        }
+      });
+    }else{
+      StartIt($idCategory, $noQuiz, $idUser, $jmlSoal);
+    }
+  }
+
+  function PageContohSoal($idCategory,$no,$idUser){
+    $.ajax({
+      type    : 'POST',
+      dataType: 'JSON',
+      url   	: "{{ url('dashboard_user') }}/getContohSoal",
+      data    : {
+        "IdCategory" : $idCategory,
+        "noQuiz" : $no
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        $contentHTML = "";
+        $pilihanGanda = '';
+        $.each(result, function(x, y) {
+          if(y.id_type == '1'){
+            $contentHTML =  '<div class="row justify-content-md-center">'+
+                              '<div class="col-md-10">'+
+                                '<div class="card">'+
+                                  '<div class="card-body">'+
+                                    '<div class="row">'+
+                                      '<div id="contentQuiz" class="textCenter">'+
+                                        '<h1>Contoh Soal '+y.no_quiz+'</h1>'+
+                                        '<hr/>'+
+                                        '<p>'+y.question+'</p>'+
+                                        '<div class="d-flex justify-content-center mb-3">'+
+                                          '<div data-mdb-input-init class="form-outline me-2" style="width: 8rem">'+
+                                            '<input type="text" class="form-control form-control-sm" id="E_'+y.id_quiz+'" name="E_'+y.id_quiz+'" value=""></input>'+
+                                          '</div>'+
+                                          '<button type="button" class="btn btn-primary btn-sm" onclick="ResultAnswer('+y.id_quiz+','+y.no_quiz+','+y.correct_answer+','+$idCategory+','+y.id_quiz_dtl+','+y.description+','+$idUser+');">SUBMIT</button>'+
+                                        '</div>'+
+                                        '<div id="resultAnswer"></div>'+
+                                      '</div>'+
+                                    '</div>'+
+                                  '</div>'+
+                                '</div>'+
+                              '</div>'+
+                            '</div>';
+          }else{
+            $pilihanGanda = $pilihanGanda + 
+                              '<div class="col-md border klikAnswer" onclick="ResultAnswer('+y.id_quiz+','+y.no_quiz+','+y.correct_answer+','+$idCategory+','+y.id_quiz_dtl+','+y.description+','+$idUser+');">'+
+                                y.description+
+                              '</div>';
+            $contentHTML =  '<div class="row justify-content-md-center">'+
+                              '<div class="col-md-10">'+
+                                '<div class="card">'+
+                                  '<div class="card-body">'+
+                                    '<div class="row">'+
+                                      '<div id="contentQuiz" class="textCenter">'+
+                                        '<h1>Contoh Soal '+y.no_quiz+'</h1>'+
+                                        '<hr/>'+
+                                        '<p>'+y.question+'</p>'+
+                                        '<div class="row">'+$pilihanGanda + '</div>'+ 
+                                        '<div id="resultAnswer"></div>'+
+                                      '</div>'+
+                                    '</div>'+
+                                  '</div>'+
+                                '</div>'+
+                              '</div>'+
+                            '</div>';
+          }
+        });
+        $('#hal_quiz').html('');
+        $('#hal_quiz').append($contentHTML);
+      },
+      error : function(xhr){
+
+      }
+    });
+  }
+
+  function ResultAnswer($idQuiz,$noQuiz,$correctAnswer,$idCategory,$idQuizDtl,$desc,$idUser){
+    $MaxSoal    = document.getElementById('TotalSoalE').value;
+    $getAnswer = "";
+    $ResultAnswer = "";
+
+    //validasi untuk tipe quiz isian/pilihan ganda
+    if($idQuizDtl){
+      $getAnswer  = $idQuizDtl;
+      $ResultAnswer = $desc;
+    }else{
+      $getAnswer  = document.getElementById('E_'+$idQuiz).value;
+      $ResultAnswer = $correctAnswer;
+    }
+    
+    //validasi untuk hasil jawaban benar/salah
+    if($getAnswer == $correctAnswer){
+      if($MaxSoal <= $noQuiz ){
+        document.getElementById('resultAnswer').innerHTML = '<span style="color:green"> BENAR! Jawabannya '+$ResultAnswer+' </span><br/><button type="button" class="btn btn-primary btn-sm" onclick="GetStarted('+$idCategory+',0,'+$idUser+');">Next >></button>';
+      }else{
+        $noQuiz = $noQuiz + 1;
+        document.getElementById('resultAnswer').innerHTML = '<span style="color:green"> BENAR! Jawabannya '+$ResultAnswer+' </span><br/><button type="button" class="btn btn-primary btn-sm" onclick="PageContohSoal('+$idCategory+','+$noQuiz+','+$idUser+');">Next >></button>';
+      }
+    }else{
+      if($MaxSoal <= $noQuiz ){
+        document.getElementById('resultAnswer').innerHTML = '<span style="color:red"> SALAH! Jawabannya '+$ResultAnswer+' </span><br/><button type="button" class="btn btn-primary btn-sm" onclick="GetStarted('+$idCategory+',0,'+$idUser+');">Next >></button>';
+      }else{
+        $noQuiz = $noQuiz + 1;
+        document.getElementById('resultAnswer').innerHTML = '<span style="color:red"> SALAH! Jawabannya '+$ResultAnswer+' </span><br/><button type="button" class="btn btn-primary btn-sm" onclick="PageContohSoal('+$idCategory+','+$noQuiz+','+$idUser+');">Next >></button>';
+      }
+    }
+  }
+
+  function GetStarted($idCategory, $noQuiz, $idUser){
+    $.ajax({
+      type    : 'POST',
+      dataType: 'JSON',
+      url   	: "{{ url('dashboard_user') }}/getContentQuiz",
+      data    : {
+        "idUser" : $idUser,
+        "IdCategory" : $idCategory
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        $contentHTML = "";
+        $contentHTML =  '<div class="row justify-content-md-center">'+
+                          '<div class="col-md-10">'+
+                            '<div class="card">'+
+                              '<div class="card-body">'+
+                                '<div class="row">'+
+                                  '<div id="contentQuiz" class="textCenter">'+
+                                    '<h1>PSIKOTEST KATEGORI '+result["master_category"].fl_code+'</h1>'+
+                                    '<hr/>'+
+                                    '<p>Terdapat <b>'+result["master_soal"].JMLH_L+'</b> soal pertanyaan, Kerjakan dalam waktu <b>'+result["master_category"].fl_waktu+'</b> menit.</p>'+
+                                    '<button type="button" class="btn btn-primary btn-sm" onclick="StartIt('+$idCategory+',1,'+$idUser+','+result["master_soal"].JMLH_L+');">MULAI</button>'+
+                                  '</div>'+
+                                '</div>'+
+                              '</div>'+
+                            '</div>'+
+                          '</div>'+
+                        '</div>';
+        $('#hal_quiz').html('');
+        $('#hal_quiz').append($contentHTML);
+      },
+      error : function(xhr){
+
+      }
+    });
+  }
+
+  function StartIt($idCategory, $noQuiz, $idUser, $jmlSoal){
+    $.ajax({
+      type    : 'POST',
+      dataType: 'JSON',
+      url   	: "{{ url('dashboard_user') }}/getSoal",
+      data    : {
+        "IdCategory" : $idCategory,
+        "noQuiz" : $noQuiz,
+        "idUser" : $idUser,
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        $contentHTML = "";
+        $pilihanGanda = '';
+        $numberSoal = getTableNumber($idCategory, $noQuiz, $idUser, $jmlSoal);
+
+        $.each(result, function(x, y) {
+          if(y.id_type == '1'){
+            $contentHTML =  '<div class="row justify-content-md-center">'+
+                              '<div class="col-md-10">'+
+                                '<div class="card">'+
+                                  '<div class="card-header" style="background-color: white;">'+
+                                    $numberSoal+
+                                  '</div>'+
+                                  '<div class="card-body">'+
+                                    '<div class="row">'+
+                                      '<div id="contentQuiz" class="textCenter">'+
+                                        '<p>'+y.question+'</p>'+
+                                        '<div class="d-flex justify-content-center mb-3">'+
+                                          '<div data-mdb-input-init class="form-outline me-2" style="width: 8rem">'+
+                                            '<input type="text" class="form-control form-control-sm" id="E_'+y.id_quiz+'" name="E_'+y.id_quiz+'" value="'+(y.answer == null ? "" : y.answer)+'"></input>'+
+                                          '</div>'+
+                                          '<button type="button" class="btn btn-primary btn-sm" onclick="SubmitAnswer('+y.id_quiz+','+$idCategory+','+y.id_quiz_dtl+','+$idUser+','+$jmlSoal+','+$noQuiz+');">SUBMIT</button>'+
+                                        '</div>'+
+                                        '<div id="resultAnswer"></div>'+
+                                      '</div>'+
+                                    '</div>'+
+                                  '</div>'+
+                                '</div>'+
+                              '</div>'+
+                            '</div>';
+          }else{
+            $pilihanGanda = $pilihanGanda + 
+                              '<div class="col-md border klikAnswer '+(y.answer == y.id_quiz_dtl ? "sudahDiisi" : "")+'" onclick="SubmitAnswer('+y.id_quiz+','+$idCategory+','+y.id_quiz_dtl+','+$idUser+','+$jmlSoal+','+$noQuiz+');">'+
+                                y.description+
+                              '</div>';
+            $contentHTML =  '<div class="row justify-content-md-center">'+
+                              '<div class="col-md-10">'+
+                                '<div class="card">'+
+                                  '<div class="card-header" style="background-color: white;">'+
+                                    $numberSoal+
+                                  '</div>'+
+                                  '<div class="card-body">'+
+                                    '<div class="row">'+
+                                      '<div id="contentQuiz" class="textCenter">'+
+                                        '<p>'+y.question+'</p>'+
+                                        '<div class="row">'+$pilihanGanda + '</div>'+ 
+                                        '<div id="resultAnswer"></div>'+
+                                      '</div>'+
+                                    '</div>'+
+                                  '</div>'+
+                                '</div>'+
+                              '</div>'+
+                            '</div>';
+          }
+        });
+        $('#hal_quiz').html('');
+        $('#hal_quiz').append($contentHTML);
+      },
+      error : function(xhr){
+
+      }
+    });
+  }
+
+  function SubmitAnswer($id_quiz,$idCategory,$id_quiz_dtl,$idUser,$jmlSoal,$noQuiz){
+    console.log($id_quiz,$idCategory,$id_quiz_dtl,$idUser);
+    $getAnswer = "";
+    if($id_quiz_dtl){
+      $getAnswer  = $id_quiz_dtl;
+    }else{
+      $getAnswer  = document.getElementById('E_'+$id_quiz).value;
+    }
+    $.ajax({
+      type    : 'POST',
+      dataType: 'JSON',
+      url   	: "{{ url('dashboard_user') }}/SubmitAnswer",
+      data    : {
+        "idQuiz"      : $id_quiz,
+        "idCategory"  : $idCategory,
+        "idUser"      : $idUser,
+        "answer"      : $getAnswer
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        if(($noQuiz + 1) <= $jmlSoal){
+          StartIt($idCategory, $noQuiz + 1, $idUser, $jmlSoal);
+        }else{
+          swal.fire("Sukses!","Test Sudah Selesai. Silahkan Periksa Kembali sebelum Submit.", "success");
+        }
+      },
+      error : function(xhr){
+        swal.fire("Info!","Terjadi kendala. Hubungi IT Administrator.", "info");
+      }
+    });
+  }
+
+  function getTableNumber($idCategory, $noQuiz, $idUser, $jmlSoal){
+    var $table = "";
+    $.ajax({
+      type    : 'POST',
+      async   : false,
+      dataType: 'JSON',
+      url   	: "{{ url('dashboard_user') }}/getTableNumber",
+      data    : {
+        "IdCategory" : $idCategory
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        $rows = "";
+        $count = 1;
+        $.each(result, function(x, y) {
+          $batas = 20;
+          if(y.fl_jawab == '1'){
+            if($batas >= $count && $count != "1"){
+              $rows = $rows + '<td border="1" class="klikNomor textCenter terisi '+($noQuiz == y.id_quiz ? "active" : "")+'" onClick="StartIt('+$idCategory+','+y.id_quiz+','+$idUser+','+$jmlSoal+')">'+y.id_quiz+'</td>';
+              $count = $count + 1;
+            }else{
+              if($count == 1){
+                $rows = $rows + '<tr><td class="klikNomor textCenter terisi '+($noQuiz == y.id_quiz ? "active" : "")+'" onClick="StartIt('+$idCategory+','+y.id_quiz+','+$idUser+','+$jmlSoal+')">'+y.id_quiz+'</td>';
+                $count = $count + 1;
+              }else{
+                $rows = $rows + '</tr>'+'<tr><td class="klikNomor textCenter terisi '+($noQuiz == y.id_quiz ? "active" : "")+'" onClick="StartIt('+$idCategory+','+y.id_quiz+','+$idUser+','+$jmlSoal+')">'+y.id_quiz+'</td>';
+                $count = 2;
+              }
+            }
+          }else{
+            if($batas >= $count && $count != "1"){
+              $rows = $rows + '<td class="klikNomor textCenter '+($noQuiz == y.id_quiz ? "active" : "")+'" onClick="StartIt('+$idCategory+','+y.id_quiz+','+$idUser+','+$jmlSoal+')">'+y.id_quiz+'</td>';
+              $count = $count + 1;
+            }else{
+              if($count == 1){
+                $rows = $rows + '<tr><td class="klikNomor textCenter '+($noQuiz == y.id_quiz ? "active" : "")+'" onClick="StartIt('+$idCategory+','+y.id_quiz+','+$idUser+','+$jmlSoal+')">'+y.id_quiz+'</td>';
+                $count = $count + 1;
+              }else{
+                $rows = $rows + '</tr>'+'<tr><td class="klikNomor textCenter '+($noQuiz == y.id_quiz ? "active" : "")+'" onClick="StartIt('+$idCategory+','+y.id_quiz+','+$idUser+','+$jmlSoal+')">'+y.id_quiz+'</td>';
+                $count = 2;
+              }
+            }
+          }
+          
+        });
+        $rows = $rows + '</tr>';
+        $table = '<table width="100%">'+$rows+'</table>';
+      }
+    });
+
+    return $table;
+  }
 
   function showIt(){
     $.ajax({
@@ -68,7 +470,7 @@
           $('#tblQuiz').append(''+
           '<tr>'+
             '<td class="textRight">'+i+'</td>'+
-            '<td>'+y.quiz+'</td>'+
+            '<td class="textLeft">'+y.quiz+'</td>'+
             '<td class="textRight">'+y.jmlh_soal+'</td>'+
             '<td class="textRight">'+y.lama_waktu+'</td>'+
             '<td class="textCenter">'+y.ket_status+'</td>'+
@@ -98,72 +500,29 @@
       }
     });
   }
-
-  function openProfile(){
-    
-    $('#modalProfile').modal('show');
-  }
 </script>
 <!-- end section Javascript -->
 
 @section('content')
 <div class="container">
-  <h1>Dashboard</h1>
-  <div class="card">
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-12">
-          <div id="tblQuizHTML">
-            <!-- javascript -->
+  <div id="hal_menu">
+    <h1>Dashboard</h1>
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-12">
+            <div id="tblQuizHTML">
+              <!-- javascript -->
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-<div class="modal fade" id="modalProfile" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="staticBackdropLabel">Edit User</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="createForm" name="createForm" enctype="multipart/form-data">
-          <div class="mb-3">
-            <label for="tmpLahir" class="col-sm-2 col-form-label">Tempat Lahir</label>
-            <input type="text" class="form-control form-control-sm" id="tmpLahir" required>
-          </div>
-          <div class="mb-3">
-            <label for="tglLahir" class="col-sm-2 col-form-label">Tanggal Lahir</label>
-            <input type="date" id="tglLahir" name="tglLahir" required>
-          </div>
-          <div class="mb-3">
-            <label for="inputName" class="col-sm-2 col-form-label">Pendidikan</label>
-            <input type="text" class="form-control form-control-sm" id="inputName" required>
-          </div>
-          <div class="mb-3">
-            <label for="inputName" class="col-sm-2 col-form-label">Jabatan</label>
-            <input type="text" class="form-control form-control-sm" id="inputName" required>
-          </div>
-          <div class="mb-3">
-            <label for="inputName" class="col-sm-2 col-form-label">Masa Kerja</label>
-            <input type="text" class="form-control form-control-sm" id="inputName" required>
-          </div>
-          <div class="mb-3">
-            <label for="inputName" class="col-sm-2 col-form-label">Tujuan Tes</label>
-            <input type="text" class="form-control form-control-sm" id="inputName" required>
-          </div>
-        <!-- </form> -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="save">Update</button>
-      </div>
-        {{ csrf_field() }}
-        </form>
-    </div>
-  </div>
+  <input type="text" id="TotalSoalE" name="TotalSoalE" value="" hidden></input>
+  <input type="text" id="TotalSoalL" name="TotalSoalL" value="" hidden></input>
+  <div id="hal_quiz" class="divElement">
+    <!-- javascript -->
+  <div>
 </div>
 @endsection

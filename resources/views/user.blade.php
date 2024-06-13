@@ -180,6 +180,7 @@
     </div>
   </div>
 </div>
+@endsection
 
 <!-- Modal -->
 <div class="modal fade" id="modal_addUser" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -293,4 +294,3 @@
     </div>
   </div>
 </div>
-@endsection

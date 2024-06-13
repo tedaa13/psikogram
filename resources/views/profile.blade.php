@@ -32,48 +32,49 @@
 
 <script type="text/javascript">
   $(document).ready(function () {
-    $(function(){
-      $('#datepicker').datepicker({
-       language: "en",
-       autoclose: true,
-       todayHighlight: true,
-       dateFormat: 'mm/dd/yyyy',
-       orientation: "bottom"
-      });
-    });
+    loadProfile();
 
-    $('#updateProfile').on('submit',function(e){
+    $('#simpan_data').on('submit',function(e){
       e.preventDefault();
-      window.swal.fire({
-        title     : "Process ...",
-        text      : "Please wait",
-        imageUrl  : "public/assets/images/ajaxloader.gif",
-        showConfirmButton : false,
-        allowOutsideClick : false
-      });
-
       $.ajax({
-        url         : "{{ url('/rdmmdc') }}/claimdate/simpan_data",
+        url         : "{{ url('/profile') }}/simpan_data",
         method      : "POST",
         data        : new FormData(this),
         contentType : false,
         cache       : false,
         processData : false,
         success     : function (data) {
-          // console.log(data);
           if(data){
             swal.fire("Info!",data, "info");
           }else{
-            $('#modalAdd').modal('hide');
-            swal.fire("Success!","Your data is successfully saved.","success");
-            searchIt();
-            clearIt();
+            swal.fire("Sukses!","Data anda berhasil disimpan.","success");
           }
         }
       });
     });
-
   });
+
+  function loadProfile(){
+    $.ajax({
+      type    : 'POST',
+      dataType: 'JSON',
+      url   	: "{{ url('profile') }}/loadProfile",
+      data    : {},
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        console.log(result);
+        document.getElementById("tmptLahir").value = result.tmpt_lahir;
+        document.getElementById("tglLahir").value = result.tgl_lahir;
+        document.getElementById("pendidikan").value = result.pendidikan;
+        document.getElementById("masaKerja").value = result.masa_kerja;
+        document.getElementById("jabatan").value = result.jabatan;
+        document.getElementById("tujuanTes").value = result.tujuan_tes;
+      },
+      error : function(xhr){
+
+      }
+    });
+  }
 </script>
 <!-- end section Javascript -->
 
@@ -84,31 +85,30 @@
     <div class="card-body">
       <div class="row">
         <div class="col-md-12">
-          <form id="updateProfile" name="updateProfile" enctype="multipart/form-data">
+          <form id="simpan_data" class="simpan_data" method="POST" enctype="multipart/form-data">
             <div class="row form-group">
               <label for="nmLengkap" class="col-sm-2 col-form-label">Nama Lengkap</label>
               <div class="col-sm-6">
-                <input type="text" class="form-control form-control-sm" id="nmLengkap" value="{{ $nama }}" disabled>
+                <input type="text" class="form-control form-control-sm" id="nmLengkap" name="nmLengkap" value="{{ $nama }}" disabled>
               </div>
             </div>
             <div class="row form-group">
               <label for="tmptLahir" class="col-sm-2 col-form-label">Tempat Lahir</label>
               <div class="col-sm-2">
-                <input type="text" class="form-control form-control-sm" id="tmptLahir" required>
+                <input type="text" class="form-control form-control-sm" id="tmptLahir" name="tmptLahir" required>
               </div>
 
               <label for="tglLahir" class="col-sm-2 col-form-label">Tgl. Lahir (mm/dd/yyyy)</label>
               <div class="col-sm-2">
                 <div class="input-group date" id="datepicker">
-                  <span class="input-group-append input-group-text"><i class="bi bi-calendar"></i></span>
-                  <input type="text" id="tglLahir" class="datepicker-here form-control form-control-sm" data-min-view="days" data-view="days"  value="<?php echo date('m/d/Y'); ?>">
+                  <input type="date" id="tglLahir" name="tglLahir" class="datepicker-here form-control form-control-sm" data-min-view="days" data-view="days"  value="<?php echo date('m/d/Y'); ?>">
                 </div>
               </div>
             </div>
             <div class="row form-group">
               <label for="pendidikan" class="col-sm-2 col-form-label">Pendidikan</label>
               <div class="col-sm-1">
-                <select id="pendidikan" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
+                <select id="pendidikan" name="pendidikan" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
                   <option value="">--</option>
                   <option value="SMA">SMA</option>
                   <option value="D3">D3</option>
@@ -119,7 +119,7 @@
 
               <label for="masaKerja" class="col-sm-2 col-form-label">Masa Kerja (Tahun)</label>
               <div class="col-sm-1">
-                <select id="masaKerja" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
+                <select id="masaKerja" name="masaKerja" class="form-select form-select-sm" aria-label=".form-select-sm example" required>
                   <option value="">--</option>
                   <option value="0">0</option>
                   <option value="<1"> < 1</option>
@@ -132,22 +132,24 @@
             <div class="row form-group">
               <label for="jabatan" class="col-sm-2 col-form-label">Jabatan</label>
               <div class="col-sm-6">
-                <input type="text" class="form-control form-control-sm" id="jabatan">
+                <input type="text" class="form-control form-control-sm" id="jabatan" name="jabatan">
               </div>
             </div>
             <div class="row form-group">
               <label for="tujuanTes" class="col-sm-2 col-form-label">Tujuan Tes</label>
               <div class="col-sm-6">
-                <input type="text" class="form-control form-control-sm" id="tujuanTes" required>
+                <input type="text" class="form-control form-control-sm" id="tujuanTes" name="tujuanTes" required>
               </div>
             </div>
-            <br/>
-            <div class="row form-group ">
+            <div class="row form-group">
               <div class="col-sm-8">
-                <button type="submit" class="btn btn-primary float-end" id="save">Simpan</button>
+                <button type="submit" class="btn btn-primary float-end">SIMPAN</button>
               </div>
             </div>
-          {{ csrf_field() }}
+            <!-- <div class="modal-footer modal-footer-uniform">
+              <button type="submit" class="btn btn-md float-right" style="background-color: #54B435;"> SAVE </button>
+            </div> -->
+            {{ csrf_field() }}
           </form>
         </div>
       </div>

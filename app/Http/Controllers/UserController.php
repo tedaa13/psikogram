@@ -42,6 +42,7 @@ class UserController extends Controller
   }
 
   public function addData(Request $r){
+    date_default_timezone_set("Asia/Jakarta");
     $this->user_id = auth()->user()->id;
     $this->role = auth()->user()->role;
 

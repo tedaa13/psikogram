@@ -31,11 +31,19 @@ Route::controller(UserController::class)->group(function(){
 Route::controller(ProfileController::class)->group(function(){
     Route::get('profile', 'index')->middleware('auth');
     Route::post('profile/updateData', 'updateData')->middleware('auth');
+    Route::post('profile/simpan_data', 'simpan_data')->middleware('auth');
+    Route::post('profile/loadProfile', 'loadProfile')->middleware('auth');
 });
 
 Route::controller(DashboardUserController::class)->group(function(){
     Route::get('dashboard_user', 'index')->middleware('auth');
     Route::post('dashboard_user/getQuiz', 'getQuiz')->middleware('auth');
+    Route::post('dashboard_user/getContentQuiz', 'getContentQuiz')->middleware('auth');
+    Route::post('dashboard_user/getContohSoal', 'getContohSoal')->middleware('auth');
+    Route::post('dashboard_user/getSoal', 'getSoal')->middleware('auth');
+    Route::post('dashboard_user/getTableNumber', 'getTableNumber')->middleware('auth');
+    Route::post('dashboard_user/SubmitAnswer', 'SubmitAnswer')->middleware('auth');
+    Route::post('dashboard_user/cekLastSave', 'cekLastSave')->middleware('auth');
 });
 
 Route::controller(FormController::class)->group(function(){

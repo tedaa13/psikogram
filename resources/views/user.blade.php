@@ -21,6 +21,12 @@
     padding: 10px 10px 10px 10px;
     border-radius: 10px;
   }
+
+  .tabz{
+    border: 1px #EEEDEB solid;
+    border-radius: 5px;
+    padding: 10px;
+  }
 </style>
 <!-- end section CSS -->
 
@@ -29,12 +35,13 @@
 
 <script>
   $(document).ready(function () {
+  
     searchIt();
-    $('#save').on('click',function(e){
+    // $('#save').on('click',function(e){
+    $('#createForm').on('submit',function(e){
       e.preventDefault();
       Swal.fire({
-        title: "Are you sure?",
-        text: "Are you sure to Transfer Data?",
+        title: "Apakah Anda yakin akan menyimpan?",
         icon: 'warning',
         inputAttributes: {
           autocapitalize: 'off'
@@ -45,22 +52,23 @@
         allowOutsideClick: false
       }).then(function(x) {
         if(x.value === true){
+          var form_data = new FormData(document.getElementById("createForm"));
+
           $.ajax({
             url         : "{{ url('/peserta') }}/addData",
             method      : "POST",
-            data        : {
-              "merchant"  : document.getElementById("inputMerchant") == null ? '' : document.getElementById("inputMerchant").value,
-              "role"      : document.getElementById("inputRole").value,
-              "name"      : document.getElementById("inputName").value,
-              "email"     : document.getElementById("inputEmail").value,
-            },
+            data        : form_data,
+            contentType : false,
+            cache       : false,
+            processData : false,
             headers : { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
             success     : function (data) {
               if(data){
                 swal.fire("Info!",data, "info");
               }else{
+                searchIt();
                 $('#modal_addUser').modal('hide');
-                swal.fire("Success!","Your data is successfully saved.","success");
+                swal.fire("Sukses!","Data Anda berhasil disimpan.","success");
               }
             }
           });
@@ -117,7 +125,7 @@
          
         });
 
-        $('#table_article').append(''+
+        $('#tblUser').append(''+
         '</tbody></table></div>'+ 
         '');
 
@@ -146,7 +154,6 @@
       },
       headers : { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
       success     : function (data) {
-        console.log(data);
         document.getElementById("editID").value = $idUser;
         document.getElementById("editMerchant").innerHTML = data.des_merchant;
         document.getElementById("editRole").innerHTML = data.des_role;
@@ -155,6 +162,44 @@
         document.getElementById("editStatus").value = data.active;
       }
     });
+  }
+
+  function pilTes($value){
+    $contentHTML = "";
+    $("#tabGuestHTML").removeClass('tabz');
+    if($value == 2){
+      $("#tabGuestHTML").addClass('tabz');
+      
+      $contentHTML = '<div class="row form-group">'+
+                                      '<label for="tglTes" class="col-sm-5 col-form-label">Tgl. Tes (mm/dd/yyyy)</label>'+
+                                      '<div class="col-sm-7">'+
+                                        '<div class="input-group date" id="datepicker">'+
+                                          '<input type="date" id="tglTes" name="tglTes" class="datepicker-here form-control form-control-sm" data-min-view="days" data-view="days"  value="<?php echo date('m/d/Y'); ?>">'+
+                                        '</div>'+
+                                      '</div>'+
+                                    '</div>';
+
+      $.ajax({
+        url         : "{{ url('/peserta') }}/masterTes",
+        async       : false,
+        method      : "POST",
+        data        : { },
+        headers : { "X-CSRF-TOKEN": "{{ csrf_token() }}" },
+        success     : function (result) {
+          $x = 0;
+          $.each(result, function(x, y) {
+            $contentHTML = $contentHTML + 
+                            '<div class="form-check form-check-inline">'+
+                              '<input class="form-check-input" type="checkbox" id="cbPilTes_'+$x+'" name="cbPilTes_'+$x+'" value="opt_'+y.code+'" checked>'+
+                              '<label class="form-check-label" for="cbPilTes_'+$x+'">'+y.code+'</label>'+
+                            '</div>';
+            $x = $x + 1;
+          })
+        }
+      });
+    }
+    $('#tabGuestHTML').html('');
+    $('#tabGuestHTML').append($contentHTML);
   }
 
 </script>
@@ -191,39 +236,42 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="createForm" name="createForm" enctype="multipart/form-data">
-          @if (Auth::user()->role == 'SA')
+        <form id="createForm" name="createForm" method="POST" enctype="multipart/form-data">
+          @if (Auth::user()->id_role == '0')
           <div class="mb-3" id="bagianMerchant">
             <label for="inputMerchant" class="col-sm-2 col-form-label">Merchant</label>
-            <select id="inputMerchant" class="form-select form-select-sm" aria-label=".form-select-sm example">
+            <select id="inputMerchant" name="merchant" class="form-select form-select-sm" aria-label=".form-select-sm example">
               <option selected>-- Select one --</option>
               @foreach ($data_merchant as $item)
-                <option value="{{ $item->code }}">{{ $item->description }}</option>
+                <option value="{{ $item->id_merchant }}">{{ $item->description }}</option>
               @endforeach
             </select>
           </div>
           @endif
           <div class="mb-3">
             <label for="inputRole" class="col-sm-2 col-form-label">Role</label>
-            <select id="inputRole" class="form-select form-select-sm" aria-label=".form-select-sm example">
+            <select id="inputRole" name="role" class="form-select form-select-sm" aria-label=".form-select-sm example" onchange="pilTes(this.value)">
               <option selected>-- Select one --</option>
               @foreach ($data_role as $item)
-                <option value="{{ $item->id_role }}">{{ $item->name_role }}</option>
+                <option value="{{ $item->id_role }}">{{ $item->description }}</option>
               @endforeach
             </select>
           </div>
           <div class="mb-3">
             <label for="inputName" class="col-sm-2 col-form-label">Name</label>
-            <input type="text" class="form-control form-control-sm" id="inputName" required>
+            <input type="text" autocomplete="off" class="form-control form-control-sm" id="inputName" name="name" required>
           </div>
           <div class="mb-3">
             <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
-            <input type="email" class="form-control form-control-sm" id="inputEmail" placeholder="name@example.com" required>
+            <input type="email" autocomplete="off" class="form-control form-control-sm" id="inputEmail" name="email" placeholder="name@example.com" required>
+          </div>
+          <div id="tabGuestHTML" class="mb-5 tabz">
+            <!-- javascript -->
           </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="save">Save</button>
+        <button type="submit" class="btn btn-primary" id="submit">Save</button>
       </div>
         {{ csrf_field() }}
         </form>
@@ -239,8 +287,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="createForm" name="createForm" enctype="multipart/form-data">
-          @if (Auth::user()->role == 'SA')
+        <form id="updateForm" name="updateForm" enctype="multipart/form-data">
+          @if (Auth::user()->id_role == '0')
           <div class="mb-0">
             <label for="editMerchant" class="col-sm-2 col-form-label">Merchant</label>
             <label for="editMerchant" class="col-sm-2 col-form-label">:</label>
@@ -268,7 +316,7 @@
               <label for="editStatus" class="col-sm-2 col-form-label">Status</label>
               <select id="editStatus" class="form-select form-select-sm" aria-label=".form-select-sm example">
                 <option selected>-- Select one --</option>
-                <option value="1">Active</option>
+                <option value="001">Aktif</option>
               </select>
             </div>
             <div class="mb-3">
@@ -287,7 +335,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="save">Update</button>
+        <button type="button" class="btn btn-primary" id="update">Update</button>
       </div>
         {{ csrf_field() }}
         </form>

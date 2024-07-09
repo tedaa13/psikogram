@@ -21,26 +21,36 @@ class LoginController extends Controller
 
   public function actionlogin(Request $request)
   {
+    $tglsystem = Date("Y-m-d H:i:s");
     // $hashedPassword = Hash::make('123456');
     // dd($hashedPassword);
     // dd($request->password);
+    $dataUser = DB::table('mst_user_login')
+                    ->select('mst_user_login.end_date','mst_user_login.id_role','mst_user.id_user')
+                    ->leftJoin('mst_user','mst_user.id_user','mst_user_login.id_user')
+                    ->where('email','=',$request->input('email'))
+                    ->first();
     $data = [
         'email' => $request->input('email'),
         'password' => $request->input('password'),
     ];
 
-    if (Auth::Attempt($data)) {
-        $getRole = DB::table('users')
-                    ->where('email','=',$data['email'])
-                    ->first();
-        if($getRole->role == 'GST'){
-          return redirect('profile');
+    if($tglsystem > $dataUser->end_date && $dataUser->id_role == '2'){
+      Session::flash('error', 'Masa waktu login anda sudah habis.');
+      return redirect('/');
+    }else if (Auth::Attempt($data)) {
+      if($dataUser->id_role == '2'){
+        if($dataUser->id_user){
+          return redirect('dashboard_user');
         }else{
-          return redirect('home');
+          return redirect('profile');
         }
+      }else{
+        return redirect('home');
+      }
     }else{
-        Session::flash('error', 'Email atau Password Salah');
-        return redirect('/');
+      Session::flash('error', 'Email atau Password Salah');
+      return redirect('/');
     }
   }
 

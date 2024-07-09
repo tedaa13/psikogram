@@ -2,14 +2,21 @@
 <html lang="en">
 <head>
   <style>
+    html, body {
+      margin-bottom:50px;
+      padding:0;
+      height:auto;
+    }
     .footer {
       position: fixed;
       left: 0;
       bottom: 0;
+      right 0;
       width: 100%;
       background-color: #E5E7E9;
       color: black;
       text-align: center;
+      margin-top: 10px;
     }
   </style>
 
@@ -44,22 +51,24 @@
 
   <!-- kalo mau ganti sidebar berikut link rekomendasi: https://dev.to/codeply/bootstrap-5-sidebar-examples-38pb -->
 
-<body>
-  <div class="d-flex" id="wrapper">
+<body id="body">
+  <div class="d-flex" style="flex-grow: 1;" id="wrapper">
     <!-- Sidebar-->
     <div class="border-end bg-white" id="sidebar-wrapper">
       <div class="sidebar-heading border-bottom bg-light">PSIKOGRAM</div>
       <div class="list-group list-group-flush">
-        @if ( Auth::user()->role <> 'GST')
+        @if ( Auth::user()->id_role <> '2')
           <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/home">Dashboard</a>
           <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/peserta">Create User</a>
           <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/form">Create Form</a>
-          <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/psikogram">Report</a>
-          <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/setting">Settings</a>
+          <!-- <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/reportRekap">Report Recap</a> -->
+          <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/report">Report Detail</a>
+          <!-- <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/setting">Settings</a> -->
         @else
           <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/dashboard_user">Dashboard</a>
           <a class="list-group-item list-group-item-action list-group-item-light p-3" href="/profile">Profile</a>
         @endif
+        
       </div>
     </div>
     <!-- Page content wrapper-->
@@ -74,9 +83,15 @@
                 <!-- <li class="nav-item active"><a class="nav-link" href="#!">Home</a></li> -->
                 <!-- <li class="nav-item"><a class="nav-link" href="#!">Link</a></li> -->
                 <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi, {{Auth::user()->name}}</a>
+                  <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Hi, {{Auth::user()->username}}</a>
                   <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item">Role: {{Auth::user()->role}}</a>
+                    @if(Auth::user()->id_role == '0')
+                      <a class="dropdown-item">Role: Super Admin</a>
+                    @elseif(Auth::user()->id_role == '1')
+                      <a class="dropdown-item">Role: Administrator</a>
+                    @else
+                      <a class="dropdown-item">Role: Guest</a>
+                    @endif
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="{{route('actionlogout')}}"><i class="bi bi-power"></i> Log Out</a>
                   </div>
@@ -90,10 +105,11 @@
       <!-- Page content-->
       @yield('content')
     </div>
+    <div class="footer">
+      <p>Copyright 2024</p>
+    </div>
   </div>
-  <div class="footer">
-    <p>Copyright 2024</p>
-  </div>
+  
 </body>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </html>

@@ -84,7 +84,7 @@
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataUser",
+      url   	: "{{ url('report') }}/getDataUser",
       data    : {
         "id_user"	: $id_user,
       },
@@ -95,6 +95,7 @@
           element.style.display = 'block';
           cekTest(result,$id_user);
           printReport($id_user);
+          printReportENG($id_user);
         }else{
           clearIt();
         }
@@ -106,11 +107,34 @@
     });
   }
 
+  function printReportENG($id_user){
+    $.ajax({
+      type    : 'POST',
+      dataType: 'JSON',
+      url   	: "{{ url('report') }}/getReportENG",
+      data    : {
+        "id_user"	: $id_user,
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+        if(result){
+          document.getElementById("skorENG").innerHTML      = result.SkorENG;
+          document.getElementById("skorENGDesc").innerHTML  = result.SkorENGDesc;
+        }else{
+          clearIt();
+        }
+      },
+      error : function(xhr){
+
+      }
+    });
+  }
+
   function getProfileUser(id_user){
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getProfileUser",
+      url   	: "{{ url('report') }}/getProfileUser",
       data    : {
         "id_user"	: $id_user,
       },
@@ -148,9 +172,12 @@
       }else if($res[$x].code == 'DISC'){
         printResultDISC($res[$x].id_category,$res[$x].code,$id_user);
         printTestDISC($res[$x].id_category,$res[$x].code,$id_user);
-      }else{
-        printResult($res[$x].id_category,$res[$x].code,$id_user);
-        printTest($res[$x].id_category,$res[$x].code,$id_user);
+      }else if($res[$x].code == 'WPT'){
+        printResultWPT($res[$x].id_category,$res[$x].code,$id_user);
+        printTestWPT($res[$x].id_category,$res[$x].code,$id_user);
+      }else if($res[$x].code == 'ENG'){
+        // printResultENG($res[$x].id_category,$res[$x].code,$id_user);
+        printTestENG($res[$x].id_category,$res[$x].code,$id_user);
       }
 
       if($fl_active == 0){
@@ -163,6 +190,77 @@
         $fl_active = 1;
       }
     }
+  }
+
+  function printTestENG($id_category, $code, $id_user){
+    $.ajax({
+      type    : 'POST',
+      dataType: 'JSON',
+      url   	: "{{ url('report') }}/getDataTest",
+      data    : {
+        "id_category"	: $id_category,
+        "code"	: $code,
+        "id_user"	: $id_user,
+      },
+      headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+      success : function(result){
+
+        $('#dtl_'+$code).html('');
+        $('#dtl_'+$code).append(''+
+
+        '<div class="table-responsive">'+
+          '<table class="table" style="width:100%" id="tblTest_'+$code+'">'+
+            '<thead>'+
+              '<tr>'+
+                '<th>No</th>'+
+                '<th>Question</th>'+
+                '<th>Answer</th>'+        
+                '<th>Correct</th>'+                  
+              '</tr>'+
+            '</thead>'+
+            '<tbody>');
+
+        var i = 0;
+        $.each(result, function(x, y) {
+          i++; 
+          if(y.answer.toUpperCase() == y.correct_answer.toUpperCase()){
+            $('#tblTest_'+$code).append(''+
+            '<tr>'+
+              '<td>'+i+'</td>'+
+              '<td>'+y.question+'</td>'+
+              '<td style="color:green;">'+y.ket_answer+'</td>'+
+              '<td>'+y.ket_correct_answer+'</td>'+
+            '</tr>'+
+            '');
+          }else{
+            $('#tblTest_'+$code).append(''+
+            '<tr>'+
+              '<td>'+i+'</td>'+
+              '<td>'+y.question+'</td>'+
+              '<td style="color:red;">'+y.ket_answer+'</td>'+
+              '<td>'+y.ket_correct_answer+'</td>'+
+            '</tr>'+
+            '');
+          }
+        });
+
+        $('#table_article').append(''+
+        '</tbody></table></div>'+ 
+        '');
+
+        $('#tblTest_'+$code).DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false
+        });
+      },
+      error : function(xhr){
+
+      }
+    });
   }
 
   function clearIt(){
@@ -196,13 +294,16 @@
     var e = document.getElementById("3_ENG");
     e.classList.remove("active");
     e.classList.add("fade");
+
+    document.getElementById("skorENG").innerHTML      = "";
+    document.getElementById("skorENGDesc").innerHTML  = "";
   }
 
-  function printTest($id_category, $code, $id_user){
+  function printTestWPT($id_category, $code, $id_user){
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataTest",
+      url   	: "{{ url('report') }}/getDataTest",
       data    : {
         "id_category"	: $id_category,
         "code"	: $code,
@@ -273,7 +374,7 @@
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataTest",
+      url   	: "{{ url('report') }}/getDataTest",
       data    : {
         "id_category"	: $id_category,
         "code"	: $code,
@@ -344,11 +445,11 @@
     });
   }
 
-  function printResult($id_category, $code, $id_user){
+  function printResultWPT($id_category, $code, $id_user){
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataResult",
+      url   	: "{{ url('report') }}/getDataResultWPT",
       data    : {
         "id_category"	: $id_category,
         "code"	: $code,
@@ -372,7 +473,7 @@
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataResultPAPI",
+      url   	: "{{ url('report') }}/getDataResultPAPI",
       data    : {
         "id_category"	: $id_category,
         "code"	: $code,
@@ -389,6 +490,8 @@
         var $jmlhPOIN = 0;
         var $pembagi = 0;
 
+        console.log(result);
+
         var $jumlahkanan = 1;
         for($j=0; $j<result.length; $j++){
           if($kananHeader != result[$j].grouping){
@@ -401,7 +504,7 @@
             $kananHeader = result[$j].grouping;
           }
           $pembagi  = $pembagi + 1;
-          $jmlhPOIN = $jmlhPOIN + result[$j].POIN;
+          $jmlhPOIN = $jmlhPOIN + parseInt(result[$j].POIN);
           $jumlahkanan ++ ;
 
           if($j==result.length-1){
@@ -466,7 +569,7 @@
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataResultDISC",
+      url   	: "{{ url('report') }}/getDataResultDISC",
       data    : {
         "id_category"	: $id_category,
         "code"	: $code,
@@ -510,19 +613,19 @@
                                               '<td>'+result[$x].skor_C+'</td>'+
                                             '</tr>';
           
-          if(result[$x].skor_M > skorM){
+          if(parseInt(result[$x].skor_M) > parseInt(skorM)){
             ket_M = result[$x].keterangan;
             arti_M = result[$x].description;
             desc_M = result[$x].desc_M;
             skorM = result[$x].skor_M;
           }
-          if(result[$x].skor_L > skorL){
+          if(parseInt(result[$x].skor_L) > parseInt(skorL)){
             ket_L = result[$x].keterangan;
             arti_L = result[$x].description;
             desc_L = result[$x].desc_L;
             skorL = result[$x].skor_L;
           }
-          if(result[$x].skor_C > skorC){
+          if(parseInt(result[$x].skor_C) > parseInt(skorC)){
             ket_C = result[$x].keterangan;
             arti_C = result[$x].description;
             desc_C = result[$x].desc_C;
@@ -567,7 +670,7 @@
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataTest",
+      url   	: "{{ url('report') }}/getDataTest",
       data    : {
         "id_category"	: $id_category,
         "code"	: $code,
@@ -667,7 +770,7 @@
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataReport",
+      url   	: "{{ url('report') }}/getDataReport",
       data    : {
         "id_user"	: $id_user,
       },
@@ -783,7 +886,7 @@
     $.ajax({
       type    : 'POST',
       dataType: 'JSON',
-      url   	: "{{ url('psikogram') }}/getDataChart",
+      url   	: "{{ url('report') }}/getDataChart",
       data    : {
         "id_user"	: $id_user,
       },
@@ -812,6 +915,9 @@
             },
             tooltip: {
               pointFormat: '<b>{series.name} : {point.y}</b><br/>',
+            },
+            accessibility: {
+              enabled: false
             },
             series: result,
             responsive: {
@@ -848,7 +954,7 @@
         <div class="col-md-6">
           <meta name="csrf-token" content="{{ csrf_token() }}">
           <label for="searchList" class="form-label">Choose Candidate</label>
-          <input class="form-control" list="datalistOptions" id="searchList" placeholder="Type to search..." onkeyup="getDataTest(this)">
+          <input class="form-control" list="datalistOptions" id="searchList" autocomplete="off" placeholder="Type to search..." onkeyup="getDataTest(this)">
           <datalist id="datalistOptions">
             @foreach ($data_user as $data)
               <option data-customvalue={{ $data->id_user }} value={{ $data->name }}> {{ $data->name }}</option>
@@ -970,7 +1076,11 @@
                 <!-- javascript -->
               </div>
             </div>
-            <div class="tab-pane container fade" id="3_ENG">4</div>
+            <div class="tab-pane container fade" id="3_ENG">
+              <div id="dtl_ENG">
+                <!-- javascript -->
+              </div>
+            </div>
             <div class="tab-pane container fade" id="REPORT">
               <div class="row">
                 <div class="col-sm-12 textLeft">
@@ -1120,13 +1230,13 @@
                 <div class="col-sm-1 textLeft" style="border: 0.5px solid;" id="cukup_potensial"></div>
                 <div class="col-sm-5 textLeft">Cukup Potensial (18 - 27)</div>
                 <div class="col-sm-2 textLeft">Skor</div>
-                <div class="col-sm-1 textLeft" style="border: 0.5px solid;">-</div>
+                <div class="col-sm-1 textLeft" style="border: 0.5px solid;"><span id="skorENG"></span></div>
               </div>
               <div class="row">
                 <div class="col-sm-1 textLeft" style="border: 0.5px solid;" id="sangat_potensial"></div>
                 <div class="col-sm-5 textLeft">Sangat Potensial (> 27)</div>
                 <div class="col-sm-2 textLeft">Predikat</div>
-                <div class="col-sm-1 textLeft" style="border: 0.5px solid;">-</div>
+                <div class="col-sm-1 textLeft" style="border: 0.5px solid;"><span id="skorENGDesc"></span></div>
               </div>
             </div>
           </div>

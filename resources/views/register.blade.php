@@ -26,7 +26,7 @@
           </div>
           <div class="form-group">
               <label><i class="fa fa-user"></i> Username</label>
-              <input type="text" name="username" class="form-control" placeholder="Username" required="">
+              <input type="text" autocomplete="off" name="username" class="form-control" placeholder="Username" required="">
           </div>
           <div class="form-group">
               <label><i class="fa fa-key"></i> Password</label>
@@ -34,7 +34,7 @@
           </div>
           <div class="form-group">
               <label><i class="fa fa-address-book"></i> Role</label>
-              <input type="text" name="role" class="form-control" value="Guest" readonly>
+              <input type="text" autocomplete="off" name="role" class="form-control" value="Guest" readonly>
           </div>
           <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-user"></i> Register</button>
           <hr>

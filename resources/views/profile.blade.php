@@ -47,7 +47,8 @@
           if(data){
             swal.fire("Info!",data, "info");
           }else{
-            swal.fire("Sukses!","Data anda berhasil disimpan.","success");
+            swal.fire("Sukses!","Data Anda berhasil disimpan.","success");
+            location.href = "dashboard_user";
           }
         }
       });
@@ -62,7 +63,6 @@
       data    : {},
       headers : { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
       success : function(result){
-        console.log(result);
         document.getElementById("tmptLahir").value = result.tmpt_lahir;
         document.getElementById("tglLahir").value = result.tgl_lahir;
         document.getElementById("pendidikan").value = result.pendidikan;
@@ -89,13 +89,13 @@
             <div class="row form-group">
               <label for="nmLengkap" class="col-sm-2 col-form-label">Nama Lengkap</label>
               <div class="col-sm-6">
-                <input type="text" class="form-control form-control-sm" id="nmLengkap" name="nmLengkap" value="{{ $nama }}" disabled>
+                <input type="text" class="form-control form-control-sm" id="nmLengkap" name="nmLengkap" value="{{ $nama }}" required>
               </div>
             </div>
             <div class="row form-group">
               <label for="tmptLahir" class="col-sm-2 col-form-label">Tempat Lahir</label>
               <div class="col-sm-2">
-                <input type="text" class="form-control form-control-sm" id="tmptLahir" name="tmptLahir" required>
+                <input type="text" autocomplete="off" class="form-control form-control-sm" id="tmptLahir" name="tmptLahir" required>
               </div>
 
               <label for="tglLahir" class="col-sm-2 col-form-label">Tgl. Lahir (mm/dd/yyyy)</label>
@@ -132,13 +132,13 @@
             <div class="row form-group">
               <label for="jabatan" class="col-sm-2 col-form-label">Jabatan</label>
               <div class="col-sm-6">
-                <input type="text" class="form-control form-control-sm" id="jabatan" name="jabatan">
+                <input type="text" autocomplete="off" class="form-control form-control-sm" id="jabatan" name="jabatan">
               </div>
             </div>
             <div class="row form-group">
               <label for="tujuanTes" class="col-sm-2 col-form-label">Tujuan Tes</label>
               <div class="col-sm-6">
-                <input type="text" class="form-control form-control-sm" id="tujuanTes" name="tujuanTes" required>
+                <input type="text" autocomplete="off" class="form-control form-control-sm" id="tujuanTes" name="tujuanTes" required>
               </div>
             </div>
             <div class="row form-group">
